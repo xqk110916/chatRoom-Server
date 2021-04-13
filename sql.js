@@ -35,6 +35,7 @@ function dataIsExist(res, name, sole, value, sql, errorInfo, isAdd = false) {
 
 function select(name, sole, value) {
   let sql = `select * from ${name} where ${sole} = "${value}"`
+  if(name && !sole && !value) sql = `select * from ${name}`
   return operationDatabase(sql).then(results => {
     return results
   }).catch(error => {

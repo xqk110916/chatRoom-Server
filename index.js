@@ -15,7 +15,6 @@ const base = require("./base")
 
 app.get("/", (req, res) => { 
   req.query  //get方法的参数  url.parse().query
-  SQL.select("user_info", "user_name", 'xqk')
   res.send("hello world!")
 })
 
@@ -43,6 +42,7 @@ app.post("/api/userInfo/register", (req, res) => {
 
 app.post("/add", (req, res) => {
   let params = req.body
+  console.log(params)
   SQL.add("user", params, res)
 })
 
