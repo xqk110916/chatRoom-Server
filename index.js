@@ -6,56 +6,25 @@ const port = 3000
 const connection = require("./mysql")
 const bodyParser = require("body-parser")
 
+app.use((req, res, next) => {
+  //设置请求头
+  res.set({
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Max-Age': 1728000,
+      'Access-Control-Allow-Origin': req.headers.origin || '*',
+      'Access-Control-Allow-Headers': 'X-Requested-With,Content-Type',
+      'Access-Control-Allow-Methods': 'PUT,POST,GET,DELETE,OPTIONS',
+      'Content-Type': 'application/json; charset=utf-8'
+  })
+  req.method === 'OPTIONS' ? res.status(204).end() : next()
+})
+
 // 使用 body-parser 中间件
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-const SQL = require("./sql")
-const base = require("./base")
-
-app.get("/", (req, res) => { 
-  req.query  //get方法的参数  url.parse().query
-  res.send("hello world!")
-})
-
-app.post("/api/userInfo/register", (req, res) => {
-  let params = req.body
-  let sendParams = { success: true }
-
-  function verify() {
-    if(params.name === '') {
-      sendParams = base.sendMap(false, '名称不能为空')
-      return false
-    } else if(params.userName === '') {
-      sendParams = base.sendMap(false, '账号不能为空')
-      return false
-    } else if(params.password === '') {
-      sendParams = base.sendMap(false, '密码不能为空')
-      return false
-    }
-    return true
-  }
-  if(!verify()) return res.send(sendParams)
-
-  SQL.add('user_info', params, res)
-})
-
-app.post("/add", (req, res) => {
-  let params = req.body
-  console.log(params)
-  SQL.add("user", params, res)
-})
-
-app.post("/update", (req, res) => {
-  let params = req.body
-  let id = params.id
-  delete params.id
-  SQL.update("user_info", params, 'id', id, res)
-})
-
-app.post("/delete", (req, res) => {
-  let { id } = req.body
-  SQL.deletes("user_info", 'id', id, res)
-})
-
 server.listen(port, () => console.log("服务已启动"));
+
+module.exports = app
+
+require("./api/user_info")

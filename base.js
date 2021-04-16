@@ -1,3 +1,30 @@
+const fs = require('fs');
+
+// 写日志
+function receiveHttpLog(url, params) {    // 写日志的同时返回获取的表名
+  let fileName = urlSplitMouduleName(url)
+  let value = `请求记录: 时间: ${timestampToTime()}, url: ${url}, 参数: ${JSON.stringify(params)};`
+  writeLog(fileName, value)
+  return fileName
+}
+function executeSqlLog(fileName, sql, msg) {
+  let value = `执行记录: 时间: ${timestampToTime()}, SQL: ${sql}, 响应消息: ${msg}`
+  writeLog(fileName, value)
+}
+function urlSplitMouduleName(url) {        // 从url中提取 /api/ 后面跟着的模块名
+  let moduleName = url.split("/api/")[1]
+  let idx = moduleName.indexOf("/")
+  moduleName = moduleName.substring(0, idx)
+  moduleName = toLine(moduleName)
+  return moduleName
+}
+function writeLog(fileName, value) {
+  value = value + '\n'
+  fs.appendFile(`./log/${fileName}.log`, value, err => {
+    if(err) return console.log("写入失败" + err)
+  })
+}
+
 // 将对象转化为sql用的string
 function groupAddParams(params) {
   let keyAry = Object.keys(params)
@@ -66,8 +93,39 @@ function clone(params) {
   return data
 }
 
+//将时间戳转化为 时间格式(带时分秒)
+function timestampToTime(timestamp = Date.now()) {
+  var date = new Date(Number(timestamp)); //时间戳为10位需*1000，时间戳为13位的话不需乘1000
+  var Y = date.getFullYear() + '-';
+  var M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+  var D = (date.getDate() < 10 ? '0' + date.getDate() : date.getDate()) + ' ';
+  var h = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':';
+  var m = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':';
+  var s = (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
+  return Y + M + D + h + m + s;
+}
+
+function GenerateRandomId() {      //生成随机ID, 时间戳加字母加随机数字
+  let time =  Date.now()
+  return randomLetter() + time + randomLetter() + randomNumber() + randomNumber()
+}
+
+function randomNumber() {
+  let num = Math.random() * 10
+  return Math.floor(num)
+}
+function randomLetter() {
+  let arr = ['A','B','C','D','E','F','G','H','I','J']
+  let index = randomNumber()
+  return arr[index]
+}
+
 module.exports.groupAddParams = groupAddParams
 module.exports.groupUpdateParams = groupUpdateParams
 module.exports.toHump = toHump
 module.exports.toLineParams = toLineParams
 module.exports.sendMap = sendMap
+module.exports.receiveHttpLog = receiveHttpLog
+module.exports.executeSqlLog = executeSqlLog
+module.exports.GenerateRandomId = GenerateRandomId
+module.exports.timestampToTime = timestampToTime

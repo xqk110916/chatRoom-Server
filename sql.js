@@ -21,20 +21,24 @@ function dataIsExist(res, name, sole, value, sql, errorInfo, isAdd = false) {
   select(name, sole, value).then(result => {
     if(result.length > 0 === !isAdd) {
       operationDatabase(sql).then(results => {
+        base.executeSqlLog(name, sql, '成功')
         res.send({ success: true })
       }).catch(error => {
+        base.executeSqlLog(name, sql, error.message)
         res.send(base.sendMap(false, "系统异常," + error.message))
       })
     } else {
+      base.executeSqlLog(name, sql, errorInfo)
       res.send(base.sendMap(false, errorInfo))
     }
   }).catch(error => {
+    base.executeSqlLog(name, sql, error.message)
     res.send(base.sendMap(false, "系统异常," + error.message))
   })
 }
 
-function select(name, sole, value) {
-  let sql = `select * from ${name} where ${sole} = "${value}"`
+function select(name, sole, value, selectValue = '*') {
+  let sql = `select ${selectValue} from ${name} where ${sole} = "${value}"`
   if(name && !sole && !value) sql = `select * from ${name}`
   return operationDatabase(sql).then(results => {
     return results
@@ -43,21 +47,19 @@ function select(name, sole, value) {
   })
 }
 
-function add(name, params, res) {
+function add(name, params, sole, value, res) {
   params = base.toLineParams(params)
   let sqlRes = base.groupAddParams(params)
   let sql = `insert into ${name} (${sqlRes.key}) value (${sqlRes.value})`
-  console.log(sql)
-  let sole = 'user_name'
-  let value = params[sole]
+  if(!sole && !value) return operationDatabase(sql)     //如果没有唯一键和值, 直接插入不需要查重
   let errorInfo = '该用户已存在'
   dataIsExist(res, name, sole, value, sql, errorInfo, true)
 }
 
 function update(name, params, sole, value, res) {
+  params = base.toLineParams(params)
   let sqlValue = base.groupUpdateParams(params)
   let sql = `update ${name} set ${sqlValue} where ${sole} = '${value}'`
-  console.log(sql)
   dataIsExist(res, name, sole, value, sql)
 }
 

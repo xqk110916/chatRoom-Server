@@ -1,0 +1,2 @@
+请求记录: 时间: 2021-04-15 10:01:28, url: /api/user/add, 参数: {"name":"zs","age":"18","sex":"1"};
+执行记录: 时间: 2021-04-15 10:01:28, SQL: insert into user (name, age, sex) value ("zs", "18", "1"), 响应消息: 该用户已存在
