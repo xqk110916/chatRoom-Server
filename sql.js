@@ -16,6 +16,7 @@ function operationDatabase(sql) {
 }
 
 // 查看数据是否已存在, 已存在就执行sql操作, 如果为新增, 则为找不到执行操作
+// res ; name: 要操作的表名; sole: 唯一键; value: 对应唯一键的值; sql: 要执行的sql; error: 如果执行select语句没有找到需要报错的信息; isAdd: 是否为新增请求, 修改删除需要在库中找到才会执行, 新增相反, 找到则不执行;
 function dataIsExist(res, name, sole, value, sql, errorInfo, isAdd = false) {
   errorInfo = errorInfo ? errorInfo : '没有查找到该数据'
   select(name, sole, value).then(result => {
@@ -37,6 +38,7 @@ function dataIsExist(res, name, sole, value, sql, errorInfo, isAdd = false) {
   })
 }
 
+// name: 要操作的表名; sole: 唯一键; value: 唯一键对应的值; selectValue: 要查询的值, 默认为*
 function select(name, sole, value, selectValue = '*') {
   let sql = `select ${selectValue} from ${name} where ${sole} = "${value}"`
   if(name && !sole && !value) sql = `select * from ${name}`
