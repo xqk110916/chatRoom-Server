@@ -38,3 +38,15 @@
 执行记录: 时间: 2021-04-15 16:17:55, SQL: update user_info set user_name = '测试用户99' where id = '2', 响应消息: 成功
 请求记录: 时间: 2021-04-15 16:37:03, url: /api/userInfo/changeName, 参数: {"userId":"2","name":"测试用户99"};
 执行记录: 时间: 2021-04-15 16:37:03, SQL: update user_info set name = '测试用户99' where id = '2', 响应消息: 成功
+请求记录: 时间: 2021-04-30 09:56:39, url: /api/userInfo/changeSignature, 参数: {};
+请求记录: 时间: 2021-04-30 09:59:27, url: /api/userInfo/changeName, 参数: {"userId":"3","name":"yyds"};
+执行记录: 时间: 2021-04-30 09:59:27, SQL: update user_info set name = 'yyds' where id = '3', 响应消息: 成功
+请求记录: 时间: 2021-04-30 10:00:55, url: /api/userInfo/register, 参数: {"name":"盖伦","userName":"gailun","password":"112233","phoneNumber":"112233"};
+执行记录: 时间: 2021-04-30 10:00:55, SQL: insert into user_info (name, user_name, password, phone_number) value ("盖伦", "gailun", "112233", "112233"), 响应消息: 成功
+请求记录: 时间: 2021-04-30 10:04:06, url: /api/userInfo/register, 参数: {"name":"茨木","userName":"cimu","password":"123456","phoneNumber":"112233","createTime":"2021-04-30 10:04:06","updateTime":"2021-04-30 10:04:06"};
+执行记录: 时间: 2021-04-30 10:04:06, SQL: insert into user_info (name, user_name, password, phone_number, create_time, update_time) value ("茨木", "cimu", "123456", "112233", "2021-04-30 10:04:06", "2021-04-30 10:04:06"), 响应消息: 成功
+请求记录: 时间: 2021-04-30 10:09:40, url: /api/userInfo/changeSignature, 参数: {"userId":"1"};
+请求记录: 时间: 2021-04-30 10:11:13, url: /api/userInfo/changeName, 参数: {"userId":"3","name":"yyds2"};
+执行记录: 时间: 2021-04-30 10:11:13, SQL: update user_info set name = 'yyds2' where id = '3', 响应消息: 成功
+请求记录: 时间: 2021-04-30 10:16:16, url: /api/userInfo/changeName, 参数: {"userId":"3","name":"yyds3"};
+执行记录: 时间: 2021-04-30 10:16:16, SQL: update user_info set name = 'yyds3' where id = '3', 响应消息: 成功

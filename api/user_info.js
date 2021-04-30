@@ -28,6 +28,9 @@ app.post("/api/userInfo/register", (req, res) => {    //注册
     return true
   }
   if(!verify()) return res.send(sendParams)
+  let time = base.timestampToTime()
+  params.createTime = time
+  params.updateTime = time
   let name = base.receiveHttpLog('/api/userInfo/register', params)
   SQL.add(name, params, 'user_name', params.userName, res)
 })
@@ -94,34 +97,23 @@ app.post("/api/userInfo/changeSignature", (req, res) => {        // 更改个性
   SQL.update(moduleName, { personalizedSignature: value }, 'id', userId, res)
 })
 
+app.post("/api/userInfo/queryInfo", (req, res) => {       // 获取用户信息
+  let { userId } = req.body
+  let moduleName = base.receiveHttpLog('/api/userInfo/changeSignature', { userId })
+  SQL.select(moduleName, 'id', userId).then(result => {
+    res.send({data: result, success: true})
+  })
+})
+
 
 //  公共函数
-function operationActionUserInfo(result, type, newValue, oldValue, res) {     // 操作user_info表时, 写入操作记录表
+function operationActionUserInfo(userId, type, newValue, oldValue, res) {     // 操作user_info表时, 写入操作记录表
   let payload = {
-    userId: result.id,
-    type: 1,
+    userId,
+    type,
     old: oldValue,
     new: newValue,
     update_time: base.timestampToTime()
   }
   SQL.add('action_user_info', payload, '', '', res)
 }
-
-
-app.post("/api/user/add", (req, res) => {
-  let params = req.body
-  base.receiveHttpLog('/api/user/add',params)
-  SQL.add("user", params, 'name', params.name, res)
-})
-
-app.post("/update", (req, res) => {
-  let params = req.body
-  let id = params.id
-  delete params.id
-  SQL.update("user_info", params, 'id', id, res)
-})
-
-app.post("/delete", (req, res) => {
-  let { id } = req.body
-  SQL.deletes("user_info", 'id', id, res)
-})
