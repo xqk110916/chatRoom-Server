@@ -27,4 +27,5 @@ server.listen(port, () => console.log("服务已启动"));
 
 module.exports = app
 
-require("./api/user_info")
+require("./api/user_info")      // 用户信息模块接口
+require("./api/friend_info")    // 好友管理模块接口

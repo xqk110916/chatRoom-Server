@@ -1,3 +1,4 @@
+//  ## 用户信息模块接口
 const app = require('../index')
 const SQL = require("../sql")
 const base = require("../base")
@@ -79,7 +80,7 @@ app.post("/api/userInfo/changeName", (req, res) => {      // 更改用户名
     res.send(base.sendMap(false,'用户名不能为空'))
     return false
   }
-  operationActionUserInfo({ userId }, 3, name, '', res)
+  operationActionUserInfo(userId, 3, name, '', res)
   SQL.update(moduleName, { name }, 'id', userId, res)
 })
 app.post("/api/userInfo/changeProfile", (req, res) => {        // 更改头像
@@ -97,8 +98,8 @@ app.post("/api/userInfo/changeSignature", (req, res) => {        // 更改个性
   SQL.update(moduleName, { personalizedSignature: value }, 'id', userId, res)
 })
 
-app.post("/api/userInfo/queryInfo", (req, res) => {       // 获取用户信息
-  let { userId } = req.body
+app.get("/api/userInfo/queryInfo", (req, res) => {       // 获取用户信息
+  let { userId } = base.httpGetParams(req)
   let moduleName = base.receiveHttpLog('/api/userInfo/changeSignature', { userId })
   SQL.select(moduleName, 'id', userId).then(result => {
     res.send({data: result, success: true})

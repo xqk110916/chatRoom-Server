@@ -40,6 +40,7 @@ function dataIsExist(res, name, sole, value, sql, errorInfo, isAdd = false) {
 
 // name: 要操作的表名; sole: 唯一键; value: 唯一键对应的值; selectValue: 要查询的值, 默认为*
 function select(name, sole, value, selectValue = '*') {
+  sole = base.toLine(sole)
   let sql = `select ${selectValue} from ${name} where ${sole} = "${value}"`
   if(name && !sole && !value) sql = `select * from ${name}`
   return operationDatabase(sql).then(results => {
@@ -70,6 +71,7 @@ function deletes(name, sole, value, res) {
   dataIsExist(res, name, sole, value, sql)
 }
 
+module.exports.custom = operationDatabase
 module.exports.select = select
 module.exports.add = add
 module.exports.update = update

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const url = require('url');
 
 // 写日志
 function receiveHttpLog(url, params) {    // 写日志的同时返回获取的表名
@@ -93,6 +94,10 @@ function clone(params) {
   return data
 }
 
+function httpGetParams(req) {      //获取get请求的参数
+  return url.parse(req.url, true).query
+}
+
 //将时间戳转化为 时间格式(带时分秒)
 function timestampToTime(timestamp = Date.now()) {
   var date = new Date(Number(timestamp)); //时间戳为10位需*1000，时间戳为13位的话不需乘1000
@@ -123,9 +128,12 @@ function randomLetter() {
 module.exports.groupAddParams = groupAddParams
 module.exports.groupUpdateParams = groupUpdateParams
 module.exports.toHump = toHump
+module.exports.toLine = toLine
 module.exports.toLineParams = toLineParams
 module.exports.sendMap = sendMap
 module.exports.receiveHttpLog = receiveHttpLog
 module.exports.executeSqlLog = executeSqlLog
 module.exports.GenerateRandomId = GenerateRandomId
 module.exports.timestampToTime = timestampToTime
+module.exports.clone = clone
+module.exports.httpGetParams = httpGetParams
