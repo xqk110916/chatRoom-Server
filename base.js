@@ -49,6 +49,17 @@ function groupUpdateParams(params) {
   })
   return value
 }
+// 将数据库下划线的数据转化为驼峰
+function groupQueryData(data) {
+  return data.map(item => {
+    let params = {}
+    let keys = Object.keys(item)
+    keys.forEach(key => {
+      params[toHump(key)] = item[key]
+    })
+    return params
+  })
+}
 // 下划线转换驼峰
 function toHump(name) {
   return name.replace(/\_(\w)/g, function(all, letter){
@@ -127,6 +138,7 @@ function randomLetter() {
 
 module.exports.groupAddParams = groupAddParams
 module.exports.groupUpdateParams = groupUpdateParams
+module.exports.groupQueryData = groupQueryData
 module.exports.toHump = toHump
 module.exports.toLine = toLine
 module.exports.toLineParams = toLineParams
