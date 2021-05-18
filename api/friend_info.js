@@ -11,54 +11,129 @@ app.get("/api/friendInfo/queryAll",(req, res) => {     // 查询所有的好友
     res.send({data: data, success: true})
   })
 })
+app.get("/api/friendInfo/queryDetailsById", (req, res) => {
+  let { id } = base.httpGetParams(req)
+  base.receiveHttpLog('/api/friendInfo/queryDetailsById', { id })
+  let moduleName = 'user_info'
+  SQL.select(moduleName, 'id', id, 'id, user_name, name').then(result => {
+    let data = base.groupQueryData(result)
+    res.send({data: data, success: true})
+  })
+})
+app.get("/api/friendInfo/queryDetailsByUserName", (req, res) => {
+  let { userName } = base.httpGetParams(req)
+  console.log(userName)
+  base.receiveHttpLog('/api/friendInfo/queryDetailsByUserName', { userName })
+  let moduleName = 'user_info'
+  SQL.select(moduleName, 'userName', userName, 'id, user_name, name').then(result => {
+    let data = base.groupQueryData(result)
+    res.send({data: data, success: true})
+  })
+})
 app.post("/api/friendInfo/add", (req, res) => {       // 添加好友
   let params = req.body
   let { userId, friendId } = params
   let moduleName = base.receiveHttpLog('/api/friendInfo/add', params)
+  let operationName = 'application_record'
   let sql = `select * from ${moduleName} where user_id = "${userId}" and friend_id = "${friendId}"`
   SQL.custom(sql).then(result => {
     if(result.length) {
       return res.send(base.sendMap(false, '你已经有该用户好友, 无法重复添加'))
     } else {
-      params.relationType = 0   // 默认为一般好友
-      operationActionFriendInfo(userId, friendId, 0, 0, res)
-      SQL.add(moduleName, params, '', '', res).then(data => {
-        res.send( { success: true } )
+      let recordSql = `select * from ${operationName} where user_id = "${userId}" and friend_id = "${friendId}"`
+      SQL.custom(recordSql).then(record => {
+        if(!record.length || record[0].status !== 0) {
+          params.status = 0
+          params.createTime = base.timestampToTime()
+          SQL.add(operationName, params, '', '', res).then(addResult => {
+            return res.send({ success: true })
+          })
+        } else {
+          return res.send(base.sendMap(false, '你的申请记录还未被处理, 请勿重复提交'))
+        }
       })
     }
   })
 })
+app.post("/api/friendInfo/handlerAddRequest", (req, res) => {      // 处理好友申请
+  let { userId, id, status } = req.body
+  let moduleName = base.receiveHttpLog('/api/friendInfo/handlerAddRequest', { userId, id, status })
+  let operationName = 'application_record'
+  let sql = `select * from ${operationName} where user_id = "${userId}" and id = "${id}"`
+  SQL.custom(sql).then(result => {
+    if(result.length) {
+      let current = result[0]
+      if(current.status !== 0) return res.send(base.sendMap(false, '该申请已处理过'))
+      let updateSql = `update ${operationName} set status = ${status}, update_time = '${base.timestampToTime()}' where id = '${id}'`
+      console.log(updateSql)
+      SQL.custom(updateSql).then(updateResults => {
+        if(status == 1) {
+          let payLoad = {
+            user_id: current.user_id,
+            friend_id: current.friend_id,
+            group_tag_id: current.group_tag_id,
+            remark_name: current.remark_name,
+            relation_type: 0
+          }
+          SQL.add(moduleName, payLoad, '', '', res).then(data => {
+            res.send( { success: true } )
+          })
+        } else {
+          res.send( { success: true } )
+        }
+      })
+    } else {
+      return res.send(base.sendMap(false, '没有查找到该条记录'))
+    }
+  })
+})
 app.post("/api/friendInfo/delete", (req, res) => {      // 删除好友
-  updateFriendInfo("/api/friendInfo/delete", req.body, -2, 1, res).then(result => {
+  updateFriendInfo("/api/friendInfo/delete", req.body, -2, res).then(result => {
     let { moduleName, current } = result
     SQL.deletes(moduleName, 'id', current.id, res)
   }).catch(err => err)
 })
 app.post("/api/friendInfo/updateBlacklist", (req, res) => {     // 加入黑名单
-  updateFriendInfo("/api/friendInfo/updateBlacklist", req.body, -1, 1, res).then(result => {
+  updateFriendInfo("/api/friendInfo/updateBlacklist", req.body, -1, res).then(result => {
     let { moduleName, current } = result
     current.relation_type = -1
     SQL.update(moduleName, current, 'id', current.id, res)
   }).catch(err => err)
 })
 app.post("/api/friendInfo/updateParticular", (req, res) => {     // 特别关心
-  updateFriendInfo("/api/friendInfo/updateBlacklist", req.body, 1, 1, res).then(result => {
+  updateFriendInfo("/api/friendInfo/updateBlacklist", req.body, 1, res).then(result => {
     let { moduleName, current } = result
     current.relation_type = 1
     SQL.update(moduleName, current, 'id', current.id, res)
   }).catch(err => err)
 })
+app.post("/api/friendInfo/updateRemarkName", (req, res) => {      // 修改好友备注
+  updateFriendInfo("/api/friendInfo/updateRemarkName", req.body, '', res).then(result => {
+    let { RemarkName } = req.body
+    let { moduleName, current } = result
+    current.Remark_name = RemarkName
+    SQL.update(moduleName, current, 'id', current.id, res)
+  })
+})
+app.post("/api/friendInfo/changeGrouping", (req, res) => {      // 修改好友分组
+  updateFriendInfo("/api/friendInfo/changeGrouping", req.body, '', res).then(result => {
+    let { groupId } = req.body
+    let { moduleName, current } = result
+    current.group_tag_id = groupId
+    SQL.update(moduleName, current, 'id', current.id, res)
+  })
+})
 
 
 //  公共函数
-function updateFriendInfo(url, params, type, status, res) {
+function updateFriendInfo(url, params, type, res) {     // 更改好友的
   let { userId, friendId } = params
   let moduleName = base.receiveHttpLog(url, params)
   let sql = `select * from ${moduleName} where user_id = "${userId}" and friend_id = "${friendId}"`
   return SQL.custom(sql).then(result => {
     if(result.length) {
       let current = result[0]
-      operationActionFriendInfo(userId, friendId, type, status, res)
+      operationActionFriendInfo(userId, friendId, type, res)
       return { moduleName, current }
     } else {
       res.send(base.sendMap(false, '操作失败,没有查找到该好友'))
@@ -66,12 +141,12 @@ function updateFriendInfo(url, params, type, status, res) {
     }
   })
 }
-function operationActionFriendInfo(userId, friendId, type, status, res) {     // 操作friend_info表时, 写入操作记录表
+function operationActionFriendInfo(userId, friendId, type, res) {     // 操作friend_info表时, 写入操作记录表
+  if(type === '') return
   let payload = {
     userId,
     friendId,
     type,
-    status,
     update_time: base.timestampToTime()
   }
   SQL.add('friend_operating_record', payload, '', '', res)

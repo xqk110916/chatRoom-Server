@@ -29,3 +29,4 @@ module.exports = app
 
 require("./api/user_info")      // 用户信息模块接口
 require("./api/friend_info")    // 好友管理模块接口
+require("./api/group_info")    // 分组管理模块接口
