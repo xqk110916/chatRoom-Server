@@ -11,7 +11,7 @@ app.get("/api/friendInfo/queryAll",(req, res) => {     // 查询所有的好友
     res.send({data: data, success: true})
   })
 })
-app.get("/api/friendInfo/queryDetailsById", (req, res) => {
+app.get("/api/friendInfo/queryDetailsById", (req, res) => {     // 根据ID查询好友的信息
   let { id } = base.httpGetParams(req)
   base.receiveHttpLog('/api/friendInfo/queryDetailsById', { id })
   let moduleName = 'user_info'
@@ -20,9 +20,8 @@ app.get("/api/friendInfo/queryDetailsById", (req, res) => {
     res.send({data: data, success: true})
   })
 })
-app.get("/api/friendInfo/queryDetailsByUserName", (req, res) => {
+app.get("/api/friendInfo/queryDetailsByUserName", (req, res) => {       // 根据用户名查询好友的信息
   let { userName } = base.httpGetParams(req)
-  console.log(userName)
   base.receiveHttpLog('/api/friendInfo/queryDetailsByUserName', { userName })
   let moduleName = 'user_info'
   SQL.select(moduleName, 'userName', userName, 'id, user_name, name').then(result => {
@@ -123,7 +122,6 @@ app.post("/api/friendInfo/changeGrouping", (req, res) => {      // 修改好友�
     SQL.update(moduleName, current, 'id', current.id, res)
   })
 })
-
 
 //  公共函数
 function updateFriendInfo(url, params, type, res) {     // 更改好友的
