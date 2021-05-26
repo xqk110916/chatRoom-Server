@@ -48,7 +48,7 @@ function select(name, sole, value, selectValue = '*') {
   let sql = `select ${selectValue} from ${name} where ${sole} = "${value}"`
   if(name && !sole && !value) sql = `select * from ${name}`
   return operationDatabase(sql).then(results => {
-    return results
+    return base.groupQueryData(results)
   }).catch(error => {
     return error
   })

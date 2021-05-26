@@ -3,11 +3,6 @@ const app = require('../index')
 const SQL = require("../sql")
 const base = require("../base")
 
-app.get("/", (req, res) => { 
-  req.query  //get方法的参数  url.parse().query
-  res.send("hello world!")
-})
-
 app.post("/api/userInfo/register", (req, res) => {    //注册
   let params = req.body
   let sendParams = { success: true }
@@ -43,10 +38,12 @@ app.post("/api/userInfo/register", (req, res) => {    //注册
 })
 app.post("/api/userInfo/login", (req, res) => {       //登录
   let params = req.body
-  let sendParams = { success: true, token: base.GenerateRandomId() }
+  let sendParams = { success: true, token: base.GenerateRandomId(), userId: null }
   let moduleName = base.receiveHttpLog('/api/userInfo/login', params)
-  SQL.select(moduleName, 'user_name', params.userName, 'password').then(result => {
-    if(result.length && result[0].password == params.password) {
+  let selectSql = `select * from ${moduleName} where user_name = '${params.userName}' and password = '${params.password}'`
+  SQL.custom(selectSql).then(result => {
+    if(result.length) {
+      sendParams.userId = result[0].id
       res.send(sendParams)
     } else {
       res.send(base.sendMap(false, "账号或密码错误"))
@@ -56,8 +53,9 @@ app.post("/api/userInfo/login", (req, res) => {       //登录
 app.post("/api/userInfo/changePassword", (req, res) => {      //更改密码
   let params = req.body
   let moduleName = base.receiveHttpLog('/api/userInfo/changePassword', params)
-  SQL.select(moduleName, 'user_name', params.userName).then(result => {
-    if(result.length && result[0].password == params.oldPassword && result[0].phone_number == params.phoneNumber) {
+  let sql = `select * from ${moduleName} where user_name = '${params.userName}' and password = '${params.oldPassword}' and phone_number = '${params.phoneNumber}'`
+  SQL.custom(sql).then(result => {
+    if(result.length) {
       SQL.update(moduleName, { password: params.newPassword }, 'user_name', params.userName, res)
       operationActionUserInfo(result[0], 0, params.newPassword, result[0].password, res)
     } else {
@@ -68,8 +66,9 @@ app.post("/api/userInfo/changePassword", (req, res) => {      //更改密码
 app.post("/api/userInfo/resetPassword", (req, res) => {     ///重置密码
   let params = req.body
   let moduleName = base.receiveHttpLog('/api/userInfo/resetPassword', params)
-  SQL.select(moduleName, 'user_name', params.userName).then(result => {
-    if(result.length && result[0].phone_number == params.phoneNumber) {
+  let sql = `select * from ${moduleName} where user_name = '${params.userName}' and phone_number = '${params.phoneNumber}'`
+  SQL.custom(sql).then(result => {
+    if(result.length) {
       SQL.update(moduleName, { password: params.password }, 'user_name', params.userName, res)
       operationActionUserInfo(result[0], 1, params.password,  result[0].password, res)
     } else {
@@ -107,7 +106,11 @@ app.get("/api/userInfo/queryInfo", (req, res) => {       // 获取用户信息
   let { userId } = base.httpGetParams(req)
   let moduleName = base.receiveHttpLog('/api/userInfo/changeSignature', { userId })
   SQL.select(moduleName, 'id', userId).then(result => {
-    res.send({data: result, success: true})
+    if(result.length) {
+      res.send({data: result[0], success: true})
+    } else {
+      res.send(base.sendMap(false, '没有找到该用户的信息'))
+    }
   })
 })
 

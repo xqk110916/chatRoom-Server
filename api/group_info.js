@@ -3,8 +3,8 @@ const app = require('../index')
 const SQL = require("../sql")
 const base = require("../base")
 
-app.post("/api/groupInfo/query", (req, res) => {
-  let { userId } = req.body
+app.get("/api/groupInfo/query", (req, res) => {
+  let { userId } = base.httpGetParams(req)
   let moduleName = base.receiveHttpLog('/api/groupInfo/query', { userId })
   SQL.select(moduleName, 'user_id', userId).then(data => {
     res.send({ data, success: true })

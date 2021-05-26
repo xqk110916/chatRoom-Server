@@ -29,6 +29,19 @@ app.get("/api/friendInfo/queryDetailsByUserName", (req, res) => {       // 根�
     res.send({data: data, success: true})
   })
 })
+app.get("/api/friendInfo/queryAddRequest", (req, res) => {    // 查询未处理的好友申请
+  let { userId } = base.httpGetParams(req)
+  base.receiveHttpLog('/api/friendInfo/queryDetailsById', { userId })
+  let moduleName = 'application_record'
+  let sql = `select * from ${moduleName} where friend_id = "${userId}" and status = 0`
+  SQL.custom(sql).then(result => {
+    let data = base.groupQueryData(result)
+    res.send({data: data, success: true})
+  }).catch(error => {
+    res.send(base.sendMap(false, error.message))
+  })
+})
+
 app.post("/api/friendInfo/add", (req, res) => {       // 添加好友
   let params = req.body
   let { userId, friendId } = params
@@ -58,13 +71,12 @@ app.post("/api/friendInfo/handlerAddRequest", (req, res) => {      // 处理好�
   let { userId, id, status } = req.body
   let moduleName = base.receiveHttpLog('/api/friendInfo/handlerAddRequest', { userId, id, status })
   let operationName = 'application_record'
-  let sql = `select * from ${operationName} where user_id = "${userId}" and id = "${id}"`
+  let sql = `select * from ${operationName} where friend_id = "${userId}" and id = "${id}"`
   SQL.custom(sql).then(result => {
     if(result.length) {
       let current = result[0]
       if(current.status !== 0) return res.send(base.sendMap(false, '该申请已处理过'))
       let updateSql = `update ${operationName} set status = ${status}, update_time = '${base.timestampToTime()}' where id = '${id}'`
-      console.log(updateSql)
       SQL.custom(updateSql).then(updateResults => {
         if(status == 1) {
           let payLoad = {
@@ -74,8 +86,16 @@ app.post("/api/friendInfo/handlerAddRequest", (req, res) => {      // 处理好�
             remark_name: current.remark_name,
             relation_type: 0
           }
-          SQL.add(moduleName, payLoad, '', '', res).then(data => {
-            res.send( { success: true } )
+          let selectSql = `select * from friend_info where user_id = '${current.user_id}' and friend_id = '${current.friend_id}'`
+          SQL.custom(selectSql).then(selectResult => {
+            console.log(selectResult)
+            if(selectResult.length) {
+              res.send(base.sendMap(false, '你已经是该用户好友了, 请勿重复添加'))
+            } else {
+              SQL.add(moduleName, payLoad, '', '', res).then(data => {
+                res.send( { success: true } )
+              })
+            }
           })
         } else {
           res.send( { success: true } )
