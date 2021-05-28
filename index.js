@@ -1,6 +1,13 @@
 const express = require('express')
 const app = express()
 const server = require('http').Server(app)
+const io = require("socket.io")(server, {
+  allowEIO3: true,
+  cors: {
+    origin: "*", // from the screenshot you provided
+    methods: ["GET", "POST"]
+  }
+})
 const port = 3000
 
 const connection = require("./mysql")
@@ -25,8 +32,9 @@ app.use(bodyParser.json());
 
 server.listen(port, () => console.log("服务已启动"));
 
-module.exports = app
+module.exports = { app, io }
 
 require("./api/user_info")      // 用户信息模块接口
 require("./api/friend_info")    // 好友管理模块接口
 require("./api/group_info")    // 分组管理模块接口
+require("./api/chat")    // 聊天

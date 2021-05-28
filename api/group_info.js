@@ -1,5 +1,5 @@
 //  ## 分组信息模块接口
-const app = require('../index')
+const app = require('../index').app
 const SQL = require("../sql")
 const base = require("../base")
 
