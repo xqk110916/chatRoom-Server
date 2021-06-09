@@ -79,22 +79,39 @@ app.post("/api/friendInfo/handlerAddRequest", (req, res) => {      // 处理好�
       let updateSql = `update ${operationName} set status = ${status}, update_time = '${base.timestampToTime()}' where id = '${id}'`
       SQL.custom(updateSql).then(updateResults => {
         if(status == 1) {
-          let payLoad = {
-            user_id: current.user_id,
-            friend_id: current.friend_id,
+          let { user_id, friend_id } = current
+          let payload = {
+            user_id,
+            friend_id,
             group_tag_id: current.group_tag_id,
             remark_name: current.remark_name,
             relation_type: 0
           }
           let selectSql = `select * from friend_info where user_id = '${current.user_id}' and friend_id = '${current.friend_id}'`
           SQL.custom(selectSql).then(selectResult => {
-            console.log(selectResult)
             if(selectResult.length) {
               res.send(base.sendMap(false, '你已经是该用户好友了, 请勿重复添加'))
             } else {
-              SQL.add(moduleName, payLoad, '', '', res).then(data => {
-                res.send( { success: true } )
+              SQL.select('user_info', 'id', user_id).then(userInfo => {
+                let info = userInfo.length ? userInfo[0] : {}
+                let name = info.name
+                let payloadCopy = base.clone(payload)
+
+                payload.group_tag_id = user_id
+                payloadCopy.group_tag_id = friend_id
+                payloadCopy.user_id = friend_id
+                payloadCopy.friend_id = user_id
+                payloadCopy.remark_name = name
+                let addTask1 = SQL.add(moduleName, payload, '', '', res)
+                let addTask2 = SQL.add(moduleName, payloadCopy, '', '', res)
+                Promise.all([addTask1, addTask2]).then(data => {
+                  res.send( { success: true } )
+                })
               })
+              
+              // SQL.add(moduleName, payLoad, '', '', res).then(data => {
+              //   res.send( { success: true } )
+              // })
             }
           })
         } else {
